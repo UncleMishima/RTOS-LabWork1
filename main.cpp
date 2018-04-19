@@ -89,20 +89,25 @@ void* crypt(void* arg)
     else if(status != 0)
     {
         cerr << "Error: pthread_barrier_destroy()" << endl;
-        exit(0);
+        exit(EXIT_FAILURE);
     }
 }
 
 
 int main(int argc, char* argv[])
 {
+    //argv[1] for input file, argv[2] for output file
+    //if (argc > 1) for (int i = 0; i < sizeof(argv)/sizeof(char); i++) cout << argv[i] << endl;
 
-	int inputFileDesc;
+    int inputFileDesc;
+
+    //input.txt file
+    char* input = argv[1];	
 	
-    if ((inputFileDesc = open("input.txt", O_RDONLY, 0666)) == -1)
+    if ((inputFileDesc = open(input, O_RDONLY, 0666)) == -1)
 	{
         cerr << "Error: file open" << endl;
-        exit(0);
+        exit(EXIT_FAILURE);
     }
 
 
@@ -111,7 +116,7 @@ int main(int argc, char* argv[])
     if((inputSize = lseek(inputFileDesc, 0, SEEK_END)) == -1)
 	{
         cerr << "Error: lseek - SEEK_END" << endl;
-        exit(0);
+        exit(EXIT_FAILURE);
     }
 
 
@@ -123,13 +128,13 @@ int main(int argc, char* argv[])
 	if(lseek(inputFileDesc, 0, SEEK_SET) == -1)
 	{
         cerr << "Error: lseek - SEEK_SET" << endl;
-        exit(0);
+        exit(EXIT_FAILURE);
     }
 	
 	if((inputSize = read(inputFileDesc, msg, inputSize)) == -1)
 	{
         cerr << "Error: file read" << endl;
-        exit(0);
+        exit(EXIT_FAILURE);
     }
 	
 
@@ -145,13 +150,13 @@ int main(int argc, char* argv[])
     if(pthread_create(&keygenThread, NULL, keygen, &keyParam) != 0)
     {
         cerr << "Error: pthread_create()" << endl;
-        exit(0);
+        exit(EXIT_FAILURE);
     }
 
     if(pthread_join(keygenThread, (void**)&key) != 0)
     {
         cerr << "Error: pthread_join()" << endl;
-        exit(0);
+        exit(EXIT_FAILURE);
     }
 
 
@@ -160,7 +165,7 @@ int main(int argc, char* argv[])
     if((status = pthread_barrier_init(&barrier, NULL, NUM_OF_ALL_THREADS)) != 0)
     {
         cerr << "Error: pthread_barrier_init()" << endl;
-        exit(0);
+        exit(EXIT_FAILURE);
     }
 
 
@@ -193,16 +198,19 @@ int main(int argc, char* argv[])
     else if(status != 0)
     {
         cerr << "Error: pthread_barrier_destroy()" << endl;
-        exit(0);
+        exit(EXIT_FAILURE);
     }
 
 
     int outputFileDesc;
 
-    if ((outputFileDesc = open("output.txt", O_WRONLY | O_CREAT, 0666)) == -1)
+    //output.txt file
+    char* output = argv[2];	
+
+    if ((outputFileDesc = open(output, O_WRONLY | O_CREAT, 0666)) == -1)
     {
         cerr << "Error: output file doesn't open" << endl;
-        exit(0);
+        exit(EXIT_FAILURE);
     }
 
 
@@ -211,7 +219,7 @@ int main(int argc, char* argv[])
     if((outputFile = write(outputFileDesc, outputText, inputSize)) == -1)
     {
         cerr << "Error: file write" << endl;
-        exit(0);
+        exit(EXIT_FAILURE);
     }
 
     close(outputFileDesc);
@@ -224,5 +232,5 @@ int main(int argc, char* argv[])
 	delete[] msg;
 
     
-    return 0;
+    return EXIT_SUCCESS;
 }
