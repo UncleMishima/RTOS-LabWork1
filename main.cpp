@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <thread>
 
 
 #define NUM_OF_THREADS 10
@@ -159,19 +160,22 @@ int main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
 
+	int coreNumber = thread::hardware_concurrency();
+	//cout << coreNumber << endl;
 
     int status;
 
-    if((status = pthread_barrier_init(&barrier, NULL, NUM_OF_ALL_THREADS)) != 0)
+    if((status = pthread_barrier_init(&barrier, NULL, coreNumber)) != 0)
     {
         cerr << "Error: pthread_barrier_init()" << endl;
         exit(EXIT_FAILURE);
     }
 
+	
+	
+    pthread_t cryptThread[coreNumber];
 
-    pthread_t cryptThread[NUM_OF_ALL_THREADS];
-
-    for(size_t i = 0; i < NUM_OF_THREADS; i++)
+    for(size_t i = 0; i < coreNumber - 1; i++)
     {
         crypt_params* cryptParametrs = new crypt_params();
 
@@ -182,10 +186,10 @@ int main(int argc, char* argv[])
 
 
 		if(i == 0) cryptParametrs->downIndex = 0; 
-        else cryptParametrs->downIndex = inputSize / NUM_OF_THREADS * i;
+        else cryptParametrs->downIndex = inputSize / (coreNumber - 1) * i;
 
         if(i == 9) cryptParametrs->topIndex = inputSize; 
-        else cryptParametrs->topIndex = inputSize / NUM_OF_THREADS * (i + 1);
+        else cryptParametrs->topIndex = inputSize / (coreNumber - 1) * (i + 1);
 
 		
         pthread_create(&cryptThread[i], NULL, crypt, cryptParametrs);
